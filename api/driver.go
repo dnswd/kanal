@@ -32,8 +32,8 @@ func (driver *Driver) setupRouter() {
 
 	// Topic
 	router.Get("/news", driver.listNews)
-	router.Post("/news", driver.createTopic)
 	router.Get("/news/topic", driver.listTopics)
+	router.Post("/news/topic", driver.createTopic)
 	router.Get("/news/:topic", driver.listNewsByTopic)
 	router.Put("/news/:topic", driver.renameTopic)
 	
@@ -43,6 +43,7 @@ func (driver *Driver) setupRouter() {
 	router.Get("/article/:id", driver.retrieveArticle)
 	router.Delete("/article/:id", driver.hardDeleteArticle)
 	router.Get("/article/:id/tags", driver.getNewsTags)
+	router.Post("/article/:id/tags/:tagid", driver.AddTagToBlog)
 	router.Post("/article/:id/publish", driver.publishArticle)
 	router.Post("/article/:id/unpublish", driver.unpublishArticle)
 

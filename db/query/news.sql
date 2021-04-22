@@ -9,58 +9,59 @@ INSERT INTO news (
     $1, $2, $3, 'draft', $4
 ) RETURNING * ;
 
+-- name: AddTagToBlog :one
+INSERT INTO news_tag (
+    news_id,
+    tag_id
+) VALUES (
+    $1, $2
+) RETURNING * ;
+
 -- name: ListNews :many
-SELECT n.id, title, t.name, status, array_agg(nt.name)
+SELECT n.id, title, t.name, status
 FROM news as n
 JOIN topic as t ON t.name = n.topic
-LEFT JOIN news_tag as nt ON nt.news_id = n.id
-GROUP BY n.id;
+GROUP BY n.id, t.name;
 
 -- name: ListNewsByTopic :many
-SELECT n.id, title, t.name, status, array_agg(nt.name)
+SELECT n.id, title, t.name, status
 FROM news as n
 JOIN topic as t ON t.name = n.topic
-LEFT JOIN news_tag as nt ON nt.news_id = n.id
-WHERE t.id = $1
-GROUP BY n.id;
+WHERE t.name = $1
+GROUP BY n.id, t.name;
 
 -- name: ListNewsByTopicAndStatus :many
-SELECT n.id, title, t.name, status, array_agg(nt.name)
+SELECT n.id, title, t.name, status
 FROM news as n
 JOIN topic as t ON t.name = n.topic
-LEFT JOIN news_tag as nt ON nt.news_id = n.id
-WHERE t.id = $1 and n.status = $2
-GROUP BY n.id;
+WHERE t.name = $1 and n.status = $2
+GROUP BY n.id, t.name;
 
 -- name: ListNewsByStatus :many
-SELECT n.id, title, t.name, status, array_agg(nt.name)
+SELECT n.id, title, t.name, status
 FROM news as n
 JOIN topic as t ON t.name = n.topic
-LEFT JOIN news_tag as nt ON nt.news_id = n.id
-WHERE status = $1
-GROUP BY n.id;
+WHERE n.status = $1
+GROUP BY n.id, t.name;
 
 -- name: ListNewsByTag :many
 SELECT n.id, title, t.name, status
 FROM news as n
 JOIN topic as t ON t.name = n.topic
-LEFT JOIN news_tag as nt ON nt.news_id = n.id
 WHERE nt.name = (SELECT tag.name from tag where tag.name=$1 LIMIT 1)
-GROUP BY n.id;
+GROUP BY n.id, t.name;
 
 -- name: GetNews :one
-SELECT n.id, title, t.name, array_agg(nt.name), author, published_date, article
+SELECT n.id, title, t.name, author, published_date, article
 FROM news as n
 JOIN topic as t ON t.name = n.topic
-LEFT JOIN news_tag as nt ON nt.news_id = n.id
 WHERE n.id = $1 LIMIT 1;
 
 -- name: GetNewsTags :many
 SELECT tag.name
-FROM news as n
-LEFT JOIN news_tag as nt ON nt.news_id = n.id
-LEFT JOIN tag ON nt.id = tag.id
-WHERE n.id = $1 LIMIT 1;
+FROM news as n, news_tag as nt 
+INNER JOIN tag ON nt.tag_id = tag.id
+WHERE n.id = $1;
 
 -- name: UpdateNews :exec
 UPDATE news SET

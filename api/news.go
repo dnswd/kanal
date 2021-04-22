@@ -1,7 +1,9 @@
 package api
 
 import (
+	"database/sql"
 	"strconv"
+	"time"
 
 	db "github.com/dnswd/kanal/db/sqlc"
 	"github.com/gofiber/fiber/v2"
@@ -10,9 +12,7 @@ import (
 func (driver *Driver) listNews(c *fiber.Ctx) (err error) {
 	status := c.Query("status")
 	switch status {
-		case "draft":
-		case "deleted":
-		case "published":
+		case "draft","deleted", "published":
 			news, err := driver.store.ListNewsByStatus(c.Context(), db.Status(status))
 			c.JSON(news)
 			return err
@@ -21,29 +21,24 @@ func (driver *Driver) listNews(c *fiber.Ctx) (err error) {
 			c.JSON(news)
 			return err
 	}
-	return
 }
 
 func (driver *Driver) listNewsByTopic(c *fiber.Ctx) (err error) {
-	idParam:= c.Params("id")
-	id, err := strconv.ParseInt(idParam, 10, 32)
+	topicParam:= c.Params("topic")
 	status := c.Query("status")
 	switch status {
-	case "draft":
-	case "deleted":
-	case "published":
+	case "draft","deleted", "published":
 		params := new(db.ListNewsByTopicAndStatusParams)
-		params.ID = int32(id)
+		params.Name = topicParam 
 		params.Status = db.Status(status)
 		news, err := driver.store.ListNewsByTopicAndStatus(c.Context(), *params)
 		c.JSON(news)
 		return err
 	default:
-		news, err := driver.store.ListNewsByTopic(c.Context(), int32(id))
+		news, err := driver.store.ListNewsByTopic(c.Context(),topicParam)
 		c.JSON(news)
 		return err
 	}
-	return
 }
 
 func (driver *Driver) createArticle(c *fiber.Ctx) (err error) {
@@ -91,7 +86,12 @@ func (driver *Driver) hardDeleteArticle(c *fiber.Ctx) error {
 
 func (driver *Driver) publishArticle(c *fiber.Ctx) error {
 	param := new(db.PublishNewsParams)
-	err := c.BodyParser(param)
+	idParam:= c.Params("id")
+	id, err := strconv.ParseInt(idParam, 10, 32)
+	param.ID = int32(id)
+	param.PublishedDate = sql.NullTime{
+		Time: time.Now(),
+	}
 	if err != nil { 
 		return err
 	}

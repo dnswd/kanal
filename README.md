@@ -5,9 +5,9 @@ Simple news management system.
 ## Endpoints
 ### Topic
 - [x] `GET    /news` List every news
-  - [x] Optional query param `status=draft,deleted,published` 
-- [x] `POST   /news` Add new topic
+  - [x] Optional query param `status=draft,deleted,published`
 - [x] `GET    /news/topic` List available topic
+- [x] `POST   /news/topic` Add new topic
 - [x] `GET    /news/:topic` List available news by topic
   - [x] Optional query param `status=draft,deleted,published`
 - [x] `PUT    /news/:topic` Modify a topic name
@@ -18,9 +18,9 @@ Simple news management system.
 - [x] `PUT    /article/:id` Replace a news article
 - [x] `DELETE /article/:id` Delete a news article
 - [x] `GET    /article/:id/tags` Get tags of a news article
-- [x] `GET    /article/:id/author` Get author of a news article
-- [x] `POST   /article/:id/publish` Publish a news article <- unsure
-- [x] `POST   /article/:id/unpublish` Set status of a news article to `draft`
+- [x] `POST   /article/:id/tags/:tagid` Add tags of a news article
+- [x] `POST   /article/:id/publish` Publish a news article
+- [x] `POST   /article/:id/unpublish` Set status of a news article to `deleted`
 
 ### Tags
 - [x] `GET    /tags` Get all available tags
@@ -62,5 +62,5 @@ erDiagram
   - [X] Topic
   - [X] News
   - [X] Tags
-- [ ] Endpoints
+- [X] Endpoints
 - [ ] Tests

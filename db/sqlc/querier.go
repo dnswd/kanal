@@ -8,6 +8,7 @@ import (
 
 type Querier interface {
 	AddTag(ctx context.Context, name string) (Tag, error)
+	AddTagToBlog(ctx context.Context, arg AddTagToBlogParams) (NewsTag, error)
 	CreateNews(ctx context.Context, arg CreateNewsParams) (News, error)
 	CreateTopic(ctx context.Context, name string) error
 	DeleteTag(ctx context.Context, id int32) error
@@ -18,7 +19,7 @@ type Querier interface {
 	ListNews(ctx context.Context) ([]ListNewsRow, error)
 	ListNewsByStatus(ctx context.Context, status Status) ([]ListNewsByStatusRow, error)
 	ListNewsByTag(ctx context.Context, name string) ([]ListNewsByTagRow, error)
-	ListNewsByTopic(ctx context.Context, id int32) ([]ListNewsByTopicRow, error)
+	ListNewsByTopic(ctx context.Context, name string) ([]ListNewsByTopicRow, error)
 	ListNewsByTopicAndStatus(ctx context.Context, arg ListNewsByTopicAndStatusParams) ([]ListNewsByTopicAndStatusRow, error)
 	ListTag(ctx context.Context) ([]Tag, error)
 	ListTopic(ctx context.Context) ([]Topic, error)

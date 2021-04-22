@@ -51,16 +51,16 @@ func (q *Queries) ListTopic(ctx context.Context) ([]Topic, error) {
 const renameTopic = `-- name: RenameTopic :exec
 UPDATE topic SET
     name = $2
-WHERE id = $1
+WHERE name = $1
 RETURNING id, name
 `
 
 type RenameTopicParams struct {
-	ID   int32  `json:"id"`
-	Name string `json:"name"`
+	Name   string `json:"name"`
+	Name_2 string `json:"name_2"`
 }
 
 func (q *Queries) RenameTopic(ctx context.Context, arg RenameTopicParams) error {
-	_, err := q.db.ExecContext(ctx, renameTopic, arg.ID, arg.Name)
+	_, err := q.db.ExecContext(ctx, renameTopic, arg.Name, arg.Name_2)
 	return err
 }

@@ -8,6 +8,27 @@ import (
 	"database/sql"
 )
 
+const addTagToBlog = `-- name: AddTagToBlog :one
+INSERT INTO news_tag (
+    news_id,
+    tag_id
+) VALUES (
+    $1, $2
+) RETURNING tag_id, news_id
+`
+
+type AddTagToBlogParams struct {
+	NewsID sql.NullInt32 `json:"news_id"`
+	TagID  sql.NullInt32 `json:"tag_id"`
+}
+
+func (q *Queries) AddTagToBlog(ctx context.Context, arg AddTagToBlogParams) (NewsTag, error) {
+	row := q.db.QueryRowContext(ctx, addTagToBlog, arg.NewsID, arg.TagID)
+	var i NewsTag
+	err := row.Scan(&i.TagID, &i.NewsID)
+	return i, err
+}
+
 const createNews = `-- name: CreateNews :one
 INSERT INTO news (
     title,
@@ -48,10 +69,9 @@ func (q *Queries) CreateNews(ctx context.Context, arg CreateNewsParams) (News, e
 }
 
 const getNews = `-- name: GetNews :one
-SELECT n.id, title, t.name, array_agg(nt.name), author, published_date, article
+SELECT n.id, title, t.name, author, published_date, article
 FROM news as n
 JOIN topic as t ON t.name = n.topic
-LEFT JOIN news_tag as nt ON nt.news_id = n.id
 WHERE n.id = $1 LIMIT 1
 `
 
@@ -59,7 +79,6 @@ type GetNewsRow struct {
 	ID            int32        `json:"id"`
 	Title         string       `json:"title"`
 	Name          string       `json:"name"`
-	ArrayAgg      interface{}  `json:"array_agg"`
 	Author        string       `json:"author"`
 	PublishedDate sql.NullTime `json:"published_date"`
 	Article       string       `json:"article"`
@@ -72,7 +91,6 @@ func (q *Queries) GetNews(ctx context.Context, id int32) (GetNewsRow, error) {
 		&i.ID,
 		&i.Title,
 		&i.Name,
-		&i.ArrayAgg,
 		&i.Author,
 		&i.PublishedDate,
 		&i.Article,
@@ -82,10 +100,9 @@ func (q *Queries) GetNews(ctx context.Context, id int32) (GetNewsRow, error) {
 
 const getNewsTags = `-- name: GetNewsTags :many
 SELECT tag.name
-FROM news as n
-LEFT JOIN news_tag as nt ON nt.news_id = n.id
-LEFT JOIN tag ON nt.id = tag.id
-WHERE n.id = $1 LIMIT 1
+FROM news as n, news_tag as nt 
+INNER JOIN tag ON nt.tag_id = tag.id
+WHERE n.id = $1
 `
 
 func (q *Queries) GetNewsTags(ctx context.Context, id int32) ([]string, error) {
@@ -122,19 +139,17 @@ func (q *Queries) HardDeleteNews(ctx context.Context, id int32) error {
 }
 
 const listNews = `-- name: ListNews :many
-SELECT n.id, title, t.name, status, array_agg(nt.name)
+SELECT n.id, title, t.name, status
 FROM news as n
 JOIN topic as t ON t.name = n.topic
-LEFT JOIN news_tag as nt ON nt.news_id = n.id
-GROUP BY n.id
+GROUP BY n.id, t.name
 `
 
 type ListNewsRow struct {
-	ID       int32       `json:"id"`
-	Title    string      `json:"title"`
-	Name     string      `json:"name"`
-	Status   Status      `json:"status"`
-	ArrayAgg interface{} `json:"array_agg"`
+	ID     int32  `json:"id"`
+	Title  string `json:"title"`
+	Name   string `json:"name"`
+	Status Status `json:"status"`
 }
 
 func (q *Queries) ListNews(ctx context.Context) ([]ListNewsRow, error) {
@@ -151,7 +166,6 @@ func (q *Queries) ListNews(ctx context.Context) ([]ListNewsRow, error) {
 			&i.Title,
 			&i.Name,
 			&i.Status,
-			&i.ArrayAgg,
 		); err != nil {
 			return nil, err
 		}
@@ -167,20 +181,18 @@ func (q *Queries) ListNews(ctx context.Context) ([]ListNewsRow, error) {
 }
 
 const listNewsByStatus = `-- name: ListNewsByStatus :many
-SELECT n.id, title, t.name, status, array_agg(nt.name)
+SELECT n.id, title, t.name, status
 FROM news as n
 JOIN topic as t ON t.name = n.topic
-LEFT JOIN news_tag as nt ON nt.news_id = n.id
-WHERE status = $1
-GROUP BY n.id
+WHERE n.status = $1
+GROUP BY n.id, t.name
 `
 
 type ListNewsByStatusRow struct {
-	ID       int32       `json:"id"`
-	Title    string      `json:"title"`
-	Name     string      `json:"name"`
-	Status   Status      `json:"status"`
-	ArrayAgg interface{} `json:"array_agg"`
+	ID     int32  `json:"id"`
+	Title  string `json:"title"`
+	Name   string `json:"name"`
+	Status Status `json:"status"`
 }
 
 func (q *Queries) ListNewsByStatus(ctx context.Context, status Status) ([]ListNewsByStatusRow, error) {
@@ -197,7 +209,6 @@ func (q *Queries) ListNewsByStatus(ctx context.Context, status Status) ([]ListNe
 			&i.Title,
 			&i.Name,
 			&i.Status,
-			&i.ArrayAgg,
 		); err != nil {
 			return nil, err
 		}
@@ -216,9 +227,8 @@ const listNewsByTag = `-- name: ListNewsByTag :many
 SELECT n.id, title, t.name, status
 FROM news as n
 JOIN topic as t ON t.name = n.topic
-LEFT JOIN news_tag as nt ON nt.news_id = n.id
 WHERE nt.name = (SELECT tag.name from tag where tag.name=$1 LIMIT 1)
-GROUP BY n.id
+GROUP BY n.id, t.name
 `
 
 type ListNewsByTagRow struct {
@@ -257,24 +267,22 @@ func (q *Queries) ListNewsByTag(ctx context.Context, name string) ([]ListNewsByT
 }
 
 const listNewsByTopic = `-- name: ListNewsByTopic :many
-SELECT n.id, title, t.name, status, array_agg(nt.name)
+SELECT n.id, title, t.name, status
 FROM news as n
 JOIN topic as t ON t.name = n.topic
-LEFT JOIN news_tag as nt ON nt.news_id = n.id
-WHERE t.id = $1
-GROUP BY n.id
+WHERE t.name = $1
+GROUP BY n.id, t.name
 `
 
 type ListNewsByTopicRow struct {
-	ID       int32       `json:"id"`
-	Title    string      `json:"title"`
-	Name     string      `json:"name"`
-	Status   Status      `json:"status"`
-	ArrayAgg interface{} `json:"array_agg"`
+	ID     int32  `json:"id"`
+	Title  string `json:"title"`
+	Name   string `json:"name"`
+	Status Status `json:"status"`
 }
 
-func (q *Queries) ListNewsByTopic(ctx context.Context, id int32) ([]ListNewsByTopicRow, error) {
-	rows, err := q.db.QueryContext(ctx, listNewsByTopic, id)
+func (q *Queries) ListNewsByTopic(ctx context.Context, name string) ([]ListNewsByTopicRow, error) {
+	rows, err := q.db.QueryContext(ctx, listNewsByTopic, name)
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +295,6 @@ func (q *Queries) ListNewsByTopic(ctx context.Context, id int32) ([]ListNewsByTo
 			&i.Title,
 			&i.Name,
 			&i.Status,
-			&i.ArrayAgg,
 		); err != nil {
 			return nil, err
 		}
@@ -303,29 +310,27 @@ func (q *Queries) ListNewsByTopic(ctx context.Context, id int32) ([]ListNewsByTo
 }
 
 const listNewsByTopicAndStatus = `-- name: ListNewsByTopicAndStatus :many
-SELECT n.id, title, t.name, status, array_agg(nt.name)
+SELECT n.id, title, t.name, status
 FROM news as n
 JOIN topic as t ON t.name = n.topic
-LEFT JOIN news_tag as nt ON nt.news_id = n.id
-WHERE t.id = $1 and n.status = $2
-GROUP BY n.id
+WHERE t.name = $1 and n.status = $2
+GROUP BY n.id, t.name
 `
 
 type ListNewsByTopicAndStatusParams struct {
-	ID     int32  `json:"id"`
+	Name   string `json:"name"`
 	Status Status `json:"status"`
 }
 
 type ListNewsByTopicAndStatusRow struct {
-	ID       int32       `json:"id"`
-	Title    string      `json:"title"`
-	Name     string      `json:"name"`
-	Status   Status      `json:"status"`
-	ArrayAgg interface{} `json:"array_agg"`
+	ID     int32  `json:"id"`
+	Title  string `json:"title"`
+	Name   string `json:"name"`
+	Status Status `json:"status"`
 }
 
 func (q *Queries) ListNewsByTopicAndStatus(ctx context.Context, arg ListNewsByTopicAndStatusParams) ([]ListNewsByTopicAndStatusRow, error) {
-	rows, err := q.db.QueryContext(ctx, listNewsByTopicAndStatus, arg.ID, arg.Status)
+	rows, err := q.db.QueryContext(ctx, listNewsByTopicAndStatus, arg.Name, arg.Status)
 	if err != nil {
 		return nil, err
 	}
@@ -338,7 +343,6 @@ func (q *Queries) ListNewsByTopicAndStatus(ctx context.Context, arg ListNewsByTo
 			&i.Title,
 			&i.Name,
 			&i.Status,
-			&i.ArrayAgg,
 		); err != nil {
 			return nil, err
 		}

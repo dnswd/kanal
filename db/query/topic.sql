@@ -12,5 +12,5 @@ FROM topic;
 -- name: RenameTopic :exec
 UPDATE topic SET
     name = $2
-WHERE id = $1
+WHERE name = $1
 RETURNING *;

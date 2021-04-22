@@ -1,8 +1,7 @@
 package api
 
 import (
-	"strconv"
-
+	db "github.com/dnswd/kanal/db/sqlc"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -25,9 +24,9 @@ func (driver *Driver) createTopic(c *fiber.Ctx) error {
 }
 
 func (driver *Driver) renameTopic(c *fiber.Ctx) error {
-	idParam:= c.Params("id")
-	id, err := strconv.ParseInt(idParam, 10, 32)
+	param := new(db.RenameTopicParams)
+	err := c.BodyParser(param)
 
-	err = driver.store.DeleteTag(c.Context(), int32(id))
+	err = driver.store.RenameTopic(c.Context(), *param)
 	return err
 }
