@@ -2,7 +2,16 @@ Kanal
 -----
 Simple news management system.
 
+## Getting Started
+1. Edit `settings.env` according to your setup
+2. `make migrateup` 
+3. `make run` or `make build-win` or `make build-nix`
+4. ???
+5. Profit
+6. `make migratedown` when finished
+
 ## Endpoints
+> Insomnia file available for testing purposes
 ### Topic
 - [x] `GET    /news` List every news
   - [x] Optional query param `status=draft,deleted,published`
