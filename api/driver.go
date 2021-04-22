@@ -32,26 +32,25 @@ func (driver *Driver) setupRouter() {
 
 	// Topic
 	router.Get("/news", driver.listNews)
-	router.Post("/news", nil)
-	router.Get("/news/:topic", nil)
-	router.Put("/news/:topic", nil)
+	router.Post("/news", driver.createTopic)
+	router.Get("/news/topic", driver.listTopics)
+	router.Get("/news/:topic", driver.listNewsByTopic)
+	router.Put("/news/:topic", driver.renameTopic)
 	
 	// News
-	router.Post("/article", nil)
-	router.Get("/article/:id", nil)
-	router.Put("/article/:id", nil)
-	router.Delete("/article/:id", nil)
-	router.Get("/article/:id/tags", nil)
-	router.Put("/article/:id/tags", nil)
-	router.Get("/article/:id/author", nil)
-	router.Post("/article/:id/publish", nil)
-	router.Post("/article/:id/unpublish", nil)
+	router.Post("/article", driver.createArticle)
+	router.Put("/article", driver.replaceArticle)
+	router.Get("/article/:id", driver.retrieveArticle)
+	router.Delete("/article/:id", driver.hardDeleteArticle)
+	router.Get("/article/:id/tags", driver.getNewsTags)
+	router.Post("/article/:id/publish", driver.publishArticle)
+	router.Post("/article/:id/unpublish", driver.unpublishArticle)
 
 	// Tags
-	router.Get("/tags", nil)
-	router.Post("/tags", nil)
-	router.Put("/tags/:id", nil)
-	router.Delete("/tags/:id", nil)
+	router.Get("/tags", driver.listTags)
+	router.Post("/tags", driver.createTag)
+	router.Put("/tags/:id", driver.renameTag)
+	router.Delete("/tags/:id", driver.deleteTag)
 	
 	driver.router = router
 }

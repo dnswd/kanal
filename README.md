@@ -1,31 +1,32 @@
-# Kanal
-## Overview
+Kanal
+-----
+Simple news management system.
 
 ## Endpoints
 ### Topic
-- [ ] `GET    /news` List every news
-- [ ] `POST   /news` Add new topic
-- [ ] `GET    /news/:topic` List every news by topic
-- [ ] `PUT    /news/:topic` Modify a topic name
-- [ ] Optional query param `status=draft,deleted,published`
+- [x] `GET    /news` List every news
+  - [x] Optional query param `status=draft,deleted,published` 
+- [x] `POST   /news` Add new topic
+- [x] `GET    /news/topic` List available topic
+- [x] `GET    /news/:topic` List available news by topic
+  - [x] Optional query param `status=draft,deleted,published`
+- [x] `PUT    /news/:topic` Modify a topic name
 
 ### News
-- [ ] `POST   /article` Submit a news article draft
-- [ ] `GET    /article/:id` Get the article of the news
-- [ ] `PUT    /article/:id` Replace a news article
-- [ ] `DELETE /article/:id` Delete a news article
-  - [ ] Query param `hard=true,false`, default to `false`
-- [ ] `GET    /article/:id/tags` Get tags of a news article
-- [ ] `PUT    /article/:id/tags` Replace tag of existing article
-- [ ] `GET    /article/:id/author` Get author of a news article
-- [ ] `POST   /article/:id/publish` Publish a news article <- unsure
-- [ ] `POST   /article/:id/unpublish` Set status of a news article to `draft`
+- [x] `POST   /article` Submit a news article draft
+- [x] `GET    /article/:id` Get the article of the news
+- [x] `PUT    /article/:id` Replace a news article
+- [x] `DELETE /article/:id` Delete a news article
+- [x] `GET    /article/:id/tags` Get tags of a news article
+- [x] `GET    /article/:id/author` Get author of a news article
+- [x] `POST   /article/:id/publish` Publish a news article <- unsure
+- [x] `POST   /article/:id/unpublish` Set status of a news article to `draft`
 
 ### Tags
-- [ ] `GET    /tags` Get all available tags
-- [ ] `POST   /tags` Create a new tag
-- [ ] `PUT    /tags/:id` Rename a tag
-- [ ] `DELETE /tags/:id` Delete a tag
+- [x] `GET    /tags` Get all available tags
+- [x] `POST   /tags` Create a new tag
+- [x] `PUT    /tags/:id` Rename a tag
+- [x] `DELETE /tags/:id` Delete a tag
 
 ## Models
 ### Topic

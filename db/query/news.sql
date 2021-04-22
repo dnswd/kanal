@@ -24,6 +24,14 @@ LEFT JOIN news_tag as nt ON nt.news_id = n.id
 WHERE t.id = $1
 GROUP BY n.id;
 
+-- name: ListNewsByTopicAndStatus :many
+SELECT n.id, title, t.name, status, array_agg(nt.name)
+FROM news as n
+JOIN topic as t ON t.name = n.topic
+LEFT JOIN news_tag as nt ON nt.news_id = n.id
+WHERE t.id = $1 and n.status = $2
+GROUP BY n.id;
+
 -- name: ListNewsByStatus :many
 SELECT n.id, title, t.name, status, array_agg(nt.name)
 FROM news as n
@@ -45,6 +53,13 @@ SELECT n.id, title, t.name, array_agg(nt.name), author, published_date, article
 FROM news as n
 JOIN topic as t ON t.name = n.topic
 LEFT JOIN news_tag as nt ON nt.news_id = n.id
+WHERE n.id = $1 LIMIT 1;
+
+-- name: GetNewsTags :many
+SELECT tag.name
+FROM news as n
+LEFT JOIN news_tag as nt ON nt.news_id = n.id
+LEFT JOIN tag ON nt.id = tag.id
 WHERE n.id = $1 LIMIT 1;
 
 -- name: UpdateNews :exec
@@ -71,8 +86,12 @@ UPDATE news SET
 WHERE id = $1
 RETURNING *;
 
--- name: DeleteNews :exec
+-- name: UnpublishNews :exec
 UPDATE news SET
     status = 'deleted'
 WHERE id = $1
 RETURNING *;
+
+-- name: HardDeleteNews :exec
+DELETE FROM news
+WHERE id = $1;

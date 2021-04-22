@@ -47,18 +47,6 @@ func (q *Queries) CreateNews(ctx context.Context, arg CreateNewsParams) (News, e
 	return i, err
 }
 
-const deleteNews = `-- name: DeleteNews :exec
-UPDATE news SET
-    status = 'deleted'
-WHERE id = $1
-RETURNING id, title, author, status, published_date, article, topic
-`
-
-func (q *Queries) DeleteNews(ctx context.Context, id int32) error {
-	_, err := q.db.ExecContext(ctx, deleteNews, id)
-	return err
-}
-
 const getNews = `-- name: GetNews :one
 SELECT n.id, title, t.name, array_agg(nt.name), author, published_date, article
 FROM news as n
@@ -90,6 +78,47 @@ func (q *Queries) GetNews(ctx context.Context, id int32) (GetNewsRow, error) {
 		&i.Article,
 	)
 	return i, err
+}
+
+const getNewsTags = `-- name: GetNewsTags :many
+SELECT tag.name
+FROM news as n
+LEFT JOIN news_tag as nt ON nt.news_id = n.id
+LEFT JOIN tag ON nt.id = tag.id
+WHERE n.id = $1 LIMIT 1
+`
+
+func (q *Queries) GetNewsTags(ctx context.Context, id int32) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getNewsTags, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+		items = append(items, name)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const hardDeleteNews = `-- name: HardDeleteNews :exec
+DELETE FROM news
+WHERE id = $1
+`
+
+func (q *Queries) HardDeleteNews(ctx context.Context, id int32) error {
+	_, err := q.db.ExecContext(ctx, hardDeleteNews, id)
+	return err
 }
 
 const listNews = `-- name: ListNews :many
@@ -273,6 +302,57 @@ func (q *Queries) ListNewsByTopic(ctx context.Context, id int32) ([]ListNewsByTo
 	return items, nil
 }
 
+const listNewsByTopicAndStatus = `-- name: ListNewsByTopicAndStatus :many
+SELECT n.id, title, t.name, status, array_agg(nt.name)
+FROM news as n
+JOIN topic as t ON t.name = n.topic
+LEFT JOIN news_tag as nt ON nt.news_id = n.id
+WHERE t.id = $1 and n.status = $2
+GROUP BY n.id
+`
+
+type ListNewsByTopicAndStatusParams struct {
+	ID     int32  `json:"id"`
+	Status Status `json:"status"`
+}
+
+type ListNewsByTopicAndStatusRow struct {
+	ID       int32       `json:"id"`
+	Title    string      `json:"title"`
+	Name     string      `json:"name"`
+	Status   Status      `json:"status"`
+	ArrayAgg interface{} `json:"array_agg"`
+}
+
+func (q *Queries) ListNewsByTopicAndStatus(ctx context.Context, arg ListNewsByTopicAndStatusParams) ([]ListNewsByTopicAndStatusRow, error) {
+	rows, err := q.db.QueryContext(ctx, listNewsByTopicAndStatus, arg.ID, arg.Status)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListNewsByTopicAndStatusRow
+	for rows.Next() {
+		var i ListNewsByTopicAndStatusRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Name,
+			&i.Status,
+			&i.ArrayAgg,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const publishNews = `-- name: PublishNews :exec
 UPDATE news SET
     status = 'published',
@@ -288,6 +368,18 @@ type PublishNewsParams struct {
 
 func (q *Queries) PublishNews(ctx context.Context, arg PublishNewsParams) error {
 	_, err := q.db.ExecContext(ctx, publishNews, arg.ID, arg.PublishedDate)
+	return err
+}
+
+const unpublishNews = `-- name: UnpublishNews :exec
+UPDATE news SET
+    status = 'deleted'
+WHERE id = $1
+RETURNING id, title, author, status, published_date, article, topic
+`
+
+func (q *Queries) UnpublishNews(ctx context.Context, id int32) error {
+	_, err := q.db.ExecContext(ctx, unpublishNews, id)
 	return err
 }
 

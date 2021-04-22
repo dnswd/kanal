@@ -8,3 +8,9 @@ INSERT INTO topic (
 -- name: ListTopic :many
 SELECT id, name
 FROM topic;
+
+-- name: RenameTopic :exec
+UPDATE topic SET
+    name = $2
+WHERE id = $1
+RETURNING *;

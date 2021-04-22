@@ -10,19 +10,22 @@ type Querier interface {
 	AddTag(ctx context.Context, name string) (Tag, error)
 	CreateNews(ctx context.Context, arg CreateNewsParams) (News, error)
 	CreateTopic(ctx context.Context, name string) error
-	DeleteNews(ctx context.Context, id int32) error
 	DeleteTag(ctx context.Context, id int32) error
 	GetNews(ctx context.Context, id int32) (GetNewsRow, error)
+	GetNewsTags(ctx context.Context, id int32) ([]string, error)
 	GetTagById(ctx context.Context, id int32) (Tag, error)
-	ListName(ctx context.Context) ([]Tag, error)
+	HardDeleteNews(ctx context.Context, id int32) error
 	ListNews(ctx context.Context) ([]ListNewsRow, error)
 	ListNewsByStatus(ctx context.Context, status Status) ([]ListNewsByStatusRow, error)
 	ListNewsByTag(ctx context.Context, name string) ([]ListNewsByTagRow, error)
 	ListNewsByTopic(ctx context.Context, id int32) ([]ListNewsByTopicRow, error)
+	ListNewsByTopicAndStatus(ctx context.Context, arg ListNewsByTopicAndStatusParams) ([]ListNewsByTopicAndStatusRow, error)
 	ListTag(ctx context.Context) ([]Tag, error)
 	ListTopic(ctx context.Context) ([]Topic, error)
 	PublishNews(ctx context.Context, arg PublishNewsParams) error
 	RenameTag(ctx context.Context, arg RenameTagParams) error
+	RenameTopic(ctx context.Context, arg RenameTopicParams) error
+	UnpublishNews(ctx context.Context, id int32) error
 	UpdateNews(ctx context.Context, arg UpdateNewsParams) error
 	UpdateNewsStatus(ctx context.Context, arg UpdateNewsStatusParams) error
 }

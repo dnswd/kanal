@@ -47,3 +47,20 @@ func (q *Queries) ListTopic(ctx context.Context) ([]Topic, error) {
 	}
 	return items, nil
 }
+
+const renameTopic = `-- name: RenameTopic :exec
+UPDATE topic SET
+    name = $2
+WHERE id = $1
+RETURNING id, name
+`
+
+type RenameTopicParams struct {
+	ID   int32  `json:"id"`
+	Name string `json:"name"`
+}
+
+func (q *Queries) RenameTopic(ctx context.Context, arg RenameTopicParams) error {
+	_, err := q.db.ExecContext(ctx, renameTopic, arg.ID, arg.Name)
+	return err
+}

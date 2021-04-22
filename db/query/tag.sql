@@ -10,11 +10,6 @@ SELECT id, name
 FROM tag
 ORDER BY id ASC;
 
--- name: ListName :many
-SELECT id, name
-FROM tag
-ORDER BY name ASC;
-
 -- name: GetTagById :one
 SELECT id, name
 FROM tag

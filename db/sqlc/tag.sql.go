@@ -45,35 +45,6 @@ func (q *Queries) GetTagById(ctx context.Context, id int32) (Tag, error) {
 	return i, err
 }
 
-const listName = `-- name: ListName :many
-SELECT id, name
-FROM tag
-ORDER BY name ASC
-`
-
-func (q *Queries) ListName(ctx context.Context) ([]Tag, error) {
-	rows, err := q.db.QueryContext(ctx, listName)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Tag
-	for rows.Next() {
-		var i Tag
-		if err := rows.Scan(&i.ID, &i.Name); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const listTag = `-- name: ListTag :many
 SELECT id, name
 FROM tag
