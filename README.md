@@ -2,18 +2,30 @@
 ## Overview
 
 ## Endpoints
-- [ ] List news
-  - [ ] Filter by status
-  - [ ] Filter by topic
-- [ ] Add news
-- [ ] View news
-- [ ] Update news
-- [ ] Remove news
-- [ ] List tags
-- [ ] Add tags
-- [ ] View tag
-- [ ] Update tags
-- [ ] Remove tags
+### Topic
+- [ ] `GET    /news` List every news
+- [ ] `POST   /news` Add new topic
+- [ ] `GET    /news/:topic` List every news by topic
+- [ ] `PUT    /news/:topic` Modify a topic name
+- [ ] Optional query param `status=draft,deleted,published`
+
+### News
+- [ ] `POST   /article` Submit a news article draft
+- [ ] `GET    /article/:id` Get the article of the news
+- [ ] `PUT    /article/:id` Replace a news article
+- [ ] `DELETE /article/:id` Delete a news article
+  - [ ] Query param `hard=true,false`, default to `false`
+- [ ] `GET    /article/:id/tags` Get tags of a news article
+- [ ] `PUT    /article/:id/tags` Replace tag of existing article
+- [ ] `GET    /article/:id/author` Get author of a news article
+- [ ] `POST   /article/:id/publish` Publish a news article <- unsure
+- [ ] `POST   /article/:id/unpublish` Set status of a news article to `draft`
+
+### Tags
+- [ ] `GET    /tags` Get all available tags
+- [ ] `POST   /tags` Create a new tag
+- [ ] `PUT    /tags/:id` Rename a tag
+- [ ] `DELETE /tags/:id` Delete a tag
 
 ## Models
 ### Topic

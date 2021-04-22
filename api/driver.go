@@ -30,11 +30,28 @@ func (driver *Driver) Listen() error {
 func (driver *Driver) setupRouter() {
 	router := fiber.New()
 
-	router.Get("/", driver.index)
+	// Topic
 	router.Get("/news", driver.listNews)
-	router.Post("/news", driver.createNews)
-	router.Get("/topic", driver.listTopic)
-	router.Post("/topic", driver.createTopic)
+	router.Post("/news", nil)
+	router.Get("/news/:topic", nil)
+	router.Put("/news/:topic", nil)
+	
+	// News
+	router.Post("/article", nil)
+	router.Get("/article/:id", nil)
+	router.Put("/article/:id", nil)
+	router.Delete("/article/:id", nil)
+	router.Get("/article/:id/tags", nil)
+	router.Put("/article/:id/tags", nil)
+	router.Get("/article/:id/author", nil)
+	router.Post("/article/:id/publish", nil)
+	router.Post("/article/:id/unpublish", nil)
+
+	// Tags
+	router.Get("/tags", nil)
+	router.Post("/tags", nil)
+	router.Put("/tags/:id", nil)
+	router.Delete("/tags/:id", nil)
 	
 	driver.router = router
 }
