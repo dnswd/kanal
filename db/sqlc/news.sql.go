@@ -12,21 +12,28 @@ const createNews = `-- name: CreateNews :one
 INSERT INTO news (
     title,
     author,
+    topic,
     status,
     article
 ) VALUES (
-    $1, $2, 'draft', $3
-) RETURNING id, title, author, status, published_date, article
+    $1, $2, $3, 'draft', $4
+) RETURNING id, title, author, status, published_date, article, topic
 `
 
 type CreateNewsParams struct {
 	Title   string `json:"title"`
 	Author  string `json:"author"`
+	Topic   string `json:"topic"`
 	Article string `json:"article"`
 }
 
 func (q *Queries) CreateNews(ctx context.Context, arg CreateNewsParams) (News, error) {
-	row := q.db.QueryRowContext(ctx, createNews, arg.Title, arg.Author, arg.Article)
+	row := q.db.QueryRowContext(ctx, createNews,
+		arg.Title,
+		arg.Author,
+		arg.Topic,
+		arg.Article,
+	)
 	var i News
 	err := row.Scan(
 		&i.ID,
@@ -35,6 +42,7 @@ func (q *Queries) CreateNews(ctx context.Context, arg CreateNewsParams) (News, e
 		&i.Status,
 		&i.PublishedDate,
 		&i.Article,
+		&i.Topic,
 	)
 	return i, err
 }
@@ -43,7 +51,7 @@ const deleteNews = `-- name: DeleteNews :exec
 UPDATE news SET
     status = 'deleted'
 WHERE id = $1
-RETURNING id, title, author, status, published_date, article
+RETURNING id, title, author, status, published_date, article, topic
 `
 
 func (q *Queries) DeleteNews(ctx context.Context, id int32) error {
@@ -54,7 +62,7 @@ func (q *Queries) DeleteNews(ctx context.Context, id int32) error {
 const getNews = `-- name: GetNews :one
 SELECT n.id, title, t.name, array_agg(nt.name), author, published_date, article
 FROM news as n
-JOIN topic as t ON t.id = n.topic_id
+JOIN topic as t ON t.name = n.topic
 LEFT JOIN news_tag as nt ON nt.news_id = n.id
 WHERE n.id = $1 LIMIT 1
 `
@@ -87,7 +95,7 @@ func (q *Queries) GetNews(ctx context.Context, id int32) (GetNewsRow, error) {
 const listNews = `-- name: ListNews :many
 SELECT n.id, title, t.name, status, array_agg(nt.name)
 FROM news as n
-JOIN topic as t ON t.id = n.topic_id
+JOIN topic as t ON t.name = n.topic
 LEFT JOIN news_tag as nt ON nt.news_id = n.id
 GROUP BY n.id
 `
@@ -132,7 +140,7 @@ func (q *Queries) ListNews(ctx context.Context) ([]ListNewsRow, error) {
 const listNewsByStatus = `-- name: ListNewsByStatus :many
 SELECT n.id, title, t.name, status, array_agg(nt.name)
 FROM news as n
-JOIN topic as t ON t.id = n.topic_id
+JOIN topic as t ON t.name = n.topic
 LEFT JOIN news_tag as nt ON nt.news_id = n.id
 WHERE status = $1
 GROUP BY n.id
@@ -178,7 +186,7 @@ func (q *Queries) ListNewsByStatus(ctx context.Context, status Status) ([]ListNe
 const listNewsByTag = `-- name: ListNewsByTag :many
 SELECT n.id, title, t.name, status
 FROM news as n
-JOIN topic as t ON t.id = n.topic_id
+JOIN topic as t ON t.name = n.topic
 LEFT JOIN news_tag as nt ON nt.news_id = n.id
 WHERE nt.name = (SELECT tag.name from tag where tag.name=$1 LIMIT 1)
 GROUP BY n.id
@@ -222,7 +230,7 @@ func (q *Queries) ListNewsByTag(ctx context.Context, name string) ([]ListNewsByT
 const listNewsByTopic = `-- name: ListNewsByTopic :many
 SELECT n.id, title, t.name, status, array_agg(nt.name)
 FROM news as n
-JOIN topic as t ON t.id = n.topic_id
+JOIN topic as t ON t.name = n.topic
 LEFT JOIN news_tag as nt ON nt.news_id = n.id
 WHERE t.id = $1
 GROUP BY n.id
@@ -270,7 +278,7 @@ UPDATE news SET
     status = 'published',
     published_date = $2
 WHERE id = $1
-RETURNING id, title, author, status, published_date, article
+RETURNING id, title, author, status, published_date, article, topic
 `
 
 type PublishNewsParams struct {
@@ -287,17 +295,19 @@ const updateNews = `-- name: UpdateNews :exec
 UPDATE news SET
     title = $2,
     author = $3,
-    status = $4,
-    published_date = $5,
-    article = $6
+    topic = $4,
+    status = $5,
+    published_date = $6,
+    article = $7
 WHERE id = $1
-RETURNING id, title, author, status, published_date, article
+RETURNING id, title, author, status, published_date, article, topic
 `
 
 type UpdateNewsParams struct {
 	ID            int32        `json:"id"`
 	Title         string       `json:"title"`
 	Author        string       `json:"author"`
+	Topic         string       `json:"topic"`
 	Status        Status       `json:"status"`
 	PublishedDate sql.NullTime `json:"published_date"`
 	Article       string       `json:"article"`
@@ -308,6 +318,7 @@ func (q *Queries) UpdateNews(ctx context.Context, arg UpdateNewsParams) error {
 		arg.ID,
 		arg.Title,
 		arg.Author,
+		arg.Topic,
 		arg.Status,
 		arg.PublishedDate,
 		arg.Article,
@@ -319,7 +330,7 @@ const updateNewsStatus = `-- name: UpdateNewsStatus :exec
 UPDATE news SET
     status = $2
 WHERE id = $1
-RETURNING id, title, author, status, published_date, article
+RETURNING id, title, author, status, published_date, article, topic
 `
 
 type UpdateNewsStatusParams struct {

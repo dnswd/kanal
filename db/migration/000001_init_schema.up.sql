@@ -11,7 +11,9 @@ CREATE TABLE "news" (
     "author"    varchar NOT NULL,
     "status"    status NOT NULL,
     "published_date" DATE,
-    "article"   TEXT NOT NULL
+    "article"   TEXT NOT NULL,
+    "topic"     varchar NOT NULL,
+    FOREIGN KEY ("topic") REFERENCES topic(name) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE "tag" (
@@ -23,5 +25,3 @@ CREATE TABLE "news_tag" (
     "tag_id"  INT REFERENCES "tag" ("id") ON UPDATE CASCADE ON DELETE CASCADE,
     "news_id" INT REFERENCES "news" ("id") ON UPDATE CASCADE ON DELETE CASCADE
 );
-
-ALTER TABLE "news" ADD FOREIGN KEY ("topic_id") REFERENCES "topic" ("id") ON DELETE CASCADE;

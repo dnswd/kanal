@@ -1,7 +1,10 @@
--- name: CreateTopic :one
+-- name: CreateTopic :exec
 INSERT INTO topic (
-    id,
     name
 ) VALUES (
-    $1, $2
+    $1
 ) RETURNING *;
+
+-- name: ListTopic :many
+SELECT id, name
+FROM topic;

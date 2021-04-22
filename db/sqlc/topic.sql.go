@@ -7,23 +7,43 @@ import (
 	"context"
 )
 
-const createTopic = `-- name: CreateTopic :one
+const createTopic = `-- name: CreateTopic :exec
 INSERT INTO topic (
-    id,
     name
 ) VALUES (
-    $1, $2
+    $1
 ) RETURNING id, name
 `
 
-type CreateTopicParams struct {
-	ID   int32  `json:"id"`
-	Name string `json:"name"`
+func (q *Queries) CreateTopic(ctx context.Context, name string) error {
+	_, err := q.db.ExecContext(ctx, createTopic, name)
+	return err
 }
 
-func (q *Queries) CreateTopic(ctx context.Context, arg CreateTopicParams) (Topic, error) {
-	row := q.db.QueryRowContext(ctx, createTopic, arg.ID, arg.Name)
-	var i Topic
-	err := row.Scan(&i.ID, &i.Name)
-	return i, err
+const listTopic = `-- name: ListTopic :many
+SELECT id, name
+FROM topic
+`
+
+func (q *Queries) ListTopic(ctx context.Context) ([]Topic, error) {
+	rows, err := q.db.QueryContext(ctx, listTopic)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Topic
+	for rows.Next() {
+		var i Topic
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

@@ -34,6 +34,7 @@ type News struct {
 	Status        Status       `json:"status"`
 	PublishedDate sql.NullTime `json:"published_date"`
 	Article       string       `json:"article"`
+	Topic         string       `json:"topic"`
 }
 
 type NewsTag struct {

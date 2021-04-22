@@ -31,6 +31,10 @@ func (driver *Driver) setupRouter() {
 	router := fiber.New()
 
 	router.Get("/", driver.index)
+	router.Get("/news", driver.listNews)
+	router.Post("/news", driver.createNews)
+	router.Get("/topic", driver.listTopic)
+	router.Post("/topic", driver.createTopic)
 	
 	driver.router = router
 }
