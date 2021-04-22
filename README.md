@@ -6,10 +6,12 @@
   - [ ] Filter by status
   - [ ] Filter by topic
 - [ ] Add news
+- [ ] View news
 - [ ] Update news
 - [ ] Remove news
 - [ ] List tags
 - [ ] Add tags
+- [ ] View tag
 - [ ] Update tags
 - [ ] Remove tags
 
@@ -44,8 +46,8 @@ erDiagram
 
 ## TODO
 - [ ] DB Models
-  - [ ] Topic
-  - [ ] News
-  - [ ] Tags
+  - [X] Topic
+  - [X] News
+  - [X] Tags
 - [ ] Endpoints
 - [ ] Tests
