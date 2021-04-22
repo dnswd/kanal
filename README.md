@@ -45,7 +45,7 @@ erDiagram
 - Assuming we don't have to worry about links on the News's article
 
 ## TODO
-- [ ] DB Models
+- [X] DB Models
   - [X] Topic
   - [X] News
   - [X] Tags

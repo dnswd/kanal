@@ -1,6 +1,6 @@
 CREATE TABLE "topic" (
     "id"    SERIAL PRIMARY KEY,
-    "name"  varchar(20) NOT NULL UNIQUE
+    "name"  varchar NOT NULL UNIQUE
 );
 
 CREATE TYPE status AS ENUM ('draft', 'deleted', 'published');
@@ -11,12 +11,12 @@ CREATE TABLE "news" (
     "author"    varchar NOT NULL,
     "status"    status NOT NULL,
     "published_date" DATE,
-    "article" T EXT NOT NULL,
+    "article"   TEXT NOT NULL
 );
 
 CREATE TABLE "tag" (
     "id"    SERIAL PRIMARY KEY,
-    "name"  varchar NOT NULL UNIQUE,
+    "name"  varchar NOT NULL UNIQUE
 );
 
 CREATE TABLE "news_tag" (

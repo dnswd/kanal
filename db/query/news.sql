@@ -13,38 +13,37 @@ SELECT n.id, title, t.name, status, array_agg(nt.name)
 FROM news as n
 JOIN topic as t ON t.id = n.topic_id
 LEFT JOIN news_tag as nt ON nt.news_id = n.id
-GROUP BY s.id;
+GROUP BY n.id;
 
 -- name: ListNewsByTopic :many
 SELECT n.id, title, t.name, status, array_agg(nt.name)
 FROM news as n
 JOIN topic as t ON t.id = n.topic_id
 LEFT JOIN news_tag as nt ON nt.news_id = n.id
-GROUP BY s.id
-WHERE t.id = $1;
+WHERE t.id = $1
+GROUP BY n.id;
 
 -- name: ListNewsByStatus :many
 SELECT n.id, title, t.name, status, array_agg(nt.name)
 FROM news as n
 JOIN topic as t ON t.id = n.topic_id
 LEFT JOIN news_tag as nt ON nt.news_id = n.id
-GROUP BY s.id
-WHERE status = $1;
+WHERE status = $1
+GROUP BY n.id;
 
 -- name: ListNewsByTag :many
 SELECT n.id, title, t.name, status
 FROM news as n
 JOIN topic as t ON t.id = n.topic_id
 LEFT JOIN news_tag as nt ON nt.news_id = n.id
-GROUP BY s.id
-WHERE nt.name = $1;
+WHERE nt.name = (SELECT tag.name from tag where tag.name=$1 LIMIT 1)
+GROUP BY n.id;
 
 -- name: GetNews :one
 SELECT n.id, title, t.name, array_agg(nt.name), author, published_date, article
 FROM news as n
 JOIN topic as t ON t.id = n.topic_id
 LEFT JOIN news_tag as nt ON nt.news_id = n.id
-GROUP BY s.id
 WHERE n.id = $1 LIMIT 1;
 
 -- name: UpdateNews :exec
@@ -59,7 +58,7 @@ RETURNING *;
 
 -- name: UpdateNewsStatus :exec
 UPDATE news SET
-    status = $2,
+    status = $2
 WHERE id = $1
 RETURNING *;
 
